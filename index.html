@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A Nigerian campus life sim. Balance reading, money and vibes across four years and graduate with the best class you can.">
+<style>html{color-scheme:light}body{margin:0}</style>
+</head>
+<body>
+<title>Campus Life NG</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Mono:wght@400;500&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow exercise-book column. A matric ID card opens the game, a status panel and ruled notebook sit above the action grid. */
+:root {
+  --bg: #E5E9E2;
+  --paper: #F8F9F5;
+  --ink: #13181F;
+  --muted: #55606B;
+  --line: #C6CEC4;
+  --rule: #C3D3EA;
+  --accent: #1F44D8;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCE3F9;
+  --good: #1B7A4B;
+  --bad: #C42B1F;
+  --f-display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+  --f-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1520; --paper: #162131; --ink: #ECE8DA; --muted: #9AA6B5; --line: #2C3C53; --rule: #22324A;
+    --accent: #FFC93C; --accent-ink: #1B1400; --accent-soft: #3A3320; --good: #5FD39A; --bad: #FF8577;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1520; --paper: #162131; --ink: #ECE8DA; --muted: #9AA6B5; --line: #2C3C53; --rule: #22324A;
+  --accent: #FFC93C; --accent-ink: #1B1400; --accent-soft: #3A3320; --good: #5FD39A; --bad: #FF8577;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.tag { font: 500 11px/1.2 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+.brand { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand b { font: 800 20px/1 var(--f-display); letter-spacing: -.01em; }
+.brand span { font: 400 12px var(--f-mono); color: var(--muted); }
+
+h1 { font: 800 clamp(34px, 10vw, 54px)/.95 var(--f-display); letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+h2 { font: 800 24px/1.1 var(--f-display); letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+.lede { margin: 0; max-width: 46ch; font-size: 16px; }
+.hero { display: grid; gap: 12px; }
+
+.idcard { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; box-shadow: 4px 4px 0 var(--ink); }
+.idcard header { background: var(--accent); color: var(--accent-ink); display: flex; justify-content: space-between; gap: 8px; padding: 8px 14px; font: 500 11px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; }
+.idbody { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; padding: 14px; align-items: start; }
+.photo { width: 72px; height: 88px; border: 2px solid var(--ink); border-radius: 8px; display: grid; place-items: center; font: 800 34px var(--f-display); background: var(--accent-soft); }
+.idfields { display: grid; gap: 8px; margin: 0; min-width: 0; }
+.idfields dt { font: 500 10px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.idfields dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+
+.field { display: grid; gap: 8px; }
+.field > label, .field > .tag { display: block; }
+.text-in { width: 100%; padding: 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font: 400 16px var(--f-body); }
+.text-in:focus { border-color: var(--accent); }
+.opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.opt { text-align: left; background: var(--paper); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; min-width: 0; }
+.opt strong { font-weight: 700; font-size: 14px; }
+.opt small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.btn { display: block; width: 100%; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 12px; padding: 14px 18px; font: 700 16px var(--f-body); cursor: pointer; }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline-color: var(--ink); }
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+.fine { margin: 0; font-size: 12px; color: var(--muted); }
+
+.hud { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 14px; display: grid; gap: 12px; }
+.hud-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.lvl { font: 800 30px/1 var(--f-display); letter-spacing: -.02em; }
+.cashbox { text-align: right; }
+.cash { font: 500 26px/1.1 var(--f-mono); }
+.bars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.bar-head { display: flex; justify-content: space-between; gap: 4px; font: 500 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.track { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s ease; }
+.fill.low { background: var(--bad); }
+.ready .track { height: 10px; }
+.pips { display: flex; align-items: center; gap: 6px; font: 500 11px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pip { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); }
+.pip.on { background: var(--accent); }
+
+.notebook { position: relative; background-color: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 4px 14px 4px 44px; background-image: repeating-linear-gradient(to bottom, transparent 0 27px, var(--rule) 27px 28px); }
+.notebook::before { content: ""; position: absolute; left: 32px; top: 0; bottom: 0; width: 2px; background: var(--bad); opacity: .55; }
+.entry { margin: 0; font-size: 14px; line-height: 28px; }
+.entry .tag { margin-right: 6px; }
+.chip { display: inline-block; font: 500 12px/1.3 var(--f-mono); padding: 0 6px; border: 1px solid currentColor; border-radius: 6px; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
+.chip.good { color: var(--good); }
+.chip.bad { color: var(--bad); }
+
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.act { background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 12px; text-align: left; cursor: pointer; display: grid; gap: 4px; align-content: start; min-height: 80px; min-width: 0; }
+.act b { font: 700 15px/1.15 var(--f-display); }
+.act span { font: 400 11px/1.4 var(--f-mono); color: var(--muted); }
+.act:not(:disabled):hover { background: var(--accent-soft); }
+.act:disabled { opacity: .5; cursor: not-allowed; border-color: var(--line); }
+.act:disabled span { color: var(--bad); }
+
+.event { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+.event p { margin: 0; }
+.choices { display: grid; gap: 8px; }
+.choices .act { min-height: 0; }
+
+.exam { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
+.exam p { margin: 0; }
+.stamp { width: 92px; height: 92px; border: 4px solid var(--bad); color: var(--bad); border-radius: 14px; display: grid; place-items: center; font: 800 56px/1 var(--f-display); transform: rotate(-8deg); animation: stamp .35s ease-out both; }
+.stamp.pass { border-color: var(--good); color: var(--good); }
+@keyframes stamp { from { transform: rotate(-8deg) scale(1.8); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 1; } }
+.notes { grid-column: 1 / -1; display: grid; gap: 4px; margin: 0; padding: 12px 0 0; border-top: 1px dashed var(--line); list-style: none; font-size: 14px; }
+.table { display: grid; gap: 0; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; }
+.row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; padding: 10px 14px; font: 400 13px var(--f-mono); border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.row.head { color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; background: var(--accent-soft); }
+
+.final { background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 18px; display: grid; gap: 8px; box-shadow: 4px 4px 0 var(--ink); }
+.final p { margin: 0; }
+.cgpa { font: 500 clamp(52px, 16vw, 72px)/1 var(--f-mono); letter-spacing: -.03em; }
+.stats { display: grid; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 14px; }
+.stats li { display: flex; justify-content: space-between; gap: 12px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.share { width: 100%; min-height: 96px; padding: 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font: 400 14px/1.5 var(--f-body); resize: none; }
+
+@media (max-width: 420px) {
+  .bars { gap: 8px; }
+  .exam { grid-template-columns: 1fr; }
+  .stamp { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp { animation: none; }
+  .fill { transition: none; }
+}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function () {
+  'use strict';
+  var WEEKS = 6, YEARS = 4, MAX_ENERGY = 100;
+
+  /* ---------- helpers ---------- */
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function chance(p) { return Math.random() < p; }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function round500(x) { return Math.round(x / 500) * 500; }
+  function fmt(n) { return '₦' + String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function R(fx, text) { return { fx: fx, text: text }; }
+  function genMatric() { return '2026/' + rnd(10000, 59999); }
+
+  /* ---------- content ---------- */
+  var COURSES = [
+    { id: 'med', name: 'Medicine & Surgery', study: 0.85, hustle: 0.8, note: 'Brutal reading. No free hours.', hustleText: 'You tutored two coursemates in biology and got paid in cash.' },
+    { id: 'law', name: 'Law', study: 0.9, hustle: 0.9, note: 'Heavy notes, strong arguments.', hustleText: "You proofread a neighbour's tenancy agreement." },
+    { id: 'eng', name: 'Engineering', study: 0.92, hustle: 1.0, note: 'Hard maths, useful hands.', hustleText: 'You repaired three phones and a generator.' },
+    { id: 'cs', name: 'Computer Science', study: 1.0, hustle: 1.4, note: 'Freelance gigs pay best.', hustleText: 'You built a landing page for a shop owner who paid on delivery.' },
+    { id: 'mac', name: 'Mass Communication', study: 1.08, hustle: 1.2, note: 'Lighter load, good with events.', hustleText: 'You shot and edited a birthday video.' },
+    { id: 'acc', name: 'Accounting', study: 1.0, hustle: 1.1, note: 'Balanced. Numbers always sell.', hustleText: 'You did bookkeeping for a provision store.' }
+  ];
+  var HOUSING = [
+    { id: 'hostel', name: 'Campus hostel', cost: 6000, rest: 15, cash: 40000, note: 'Cheap. Noisy. Water is a rumour.' },
+    { id: 'off', name: 'Off-campus self-con', cost: 10000, rest: 25, cash: 30000, note: 'Quiet nights. Rent eats your weeks.' },
+    { id: 'squat', name: 'Squatting with a friend', cost: 4000, rest: 10, cash: 50000, note: 'Almost free. Floor sleeping.' }
+  ];
+
+  var ACTIONS = [
+    { id: 'lecture', name: 'Attend lectures', hint: '−15 energy · steady reading · attendance', energy: 15,
+      run: function () {
+        if (chance(0.15)) return R({ energy: -5, mood: -5, study: 3, att: 4 }, 'The lecturer never showed up. You waited two hours for nothing.');
+        return R({ energy: -15, mood: -3, study: Math.round(10 * S.course.study), att: 16 }, 'You sat near the front and took real notes.');
+      } },
+    { id: 'library', name: 'Read at the library', hint: '−20 energy · strong reading · −6 mood', energy: 20,
+      run: function () {
+        if (chance(0.15)) return R({ energy: -12, mood: -4, study: Math.round(6 * S.course.study) }, 'NEPA took light mid-chapter. You finished by phone torch.');
+        return R({ energy: -20, mood: -6, study: Math.round(16 * S.course.study) }, 'Quiet corner, three chapters, one headache.');
+      } },
+    { id: 'allnight', name: 'All-night reading', hint: '−35 energy · big reading · −12 mood', energy: 35,
+      run: function () {
+        if (chance(0.2)) return R({ energy: -35, mood: -12, study: Math.round(14 * S.course.study) }, 'You dozed off at 3am with the book on your face.');
+        return R({ energy: -35, mood: -12, study: Math.round(28 * S.course.study) }, 'Indomie, strong tea and the whole syllabus by sunrise.');
+      } },
+    { id: 'hustle', name: 'Side hustle', hint: '−20 energy · earn ₦4k–₦12k', energy: 20,
+      run: function () {
+        if (chance(0.12)) return R({ energy: -20, mood: -6 }, 'The client read your message, left it on seen and never paid.');
+        var gain = round500(rnd(8, 24) * 500 * S.course.hustle);
+        S.earned += gain;
+        return R({ energy: -20, cash: gain }, S.course.hustleText);
+      } },
+    { id: 'hangout', name: 'Hang out', hint: '−₦2,500 · −10 energy · +14 mood · +6 aura', cash: 2500, energy: 10,
+      run: function () { return R({ cash: -2500, energy: -10, mood: 14, aura: 6 }, 'Suya, jokes and one very loud argument about football.'); } },
+    { id: 'chop', name: 'Eat well', hint: '−₦3,000 · +12 energy · +8 mood', cash: 3000,
+      run: function () { return R({ cash: -3000, energy: 12, mood: 8 }, 'Jollof with two pieces of chicken. Life is good.'); } },
+    { id: 'sleep', name: 'Sleep', hint: '+30 energy · +4 mood',
+      run: function () { return R({ energy: 30, mood: 4 }, 'You slept through the generator noise and woke up a new person.'); } },
+    { id: 'home', name: 'Call home', hint: 'Get ₦8k–₦15k · −4 mood', home: true,
+      run: function () {
+        S.homeCalls++;
+        if (chance(0.2)) return R({ cash: 2000, mood: -6 }, 'They sent ₦2,000 and a long voice note about God providing.');
+        return R({ cash: rnd(8, 15) * 1000, mood: -4 }, 'Mum sent it after a ten-minute sermon about prices.');
+      } }
+  ];
+
+  var EVENTS = [
+    { id: 'strike', title: 'Strike announced', text: 'The staff union has called a strike. Lectures are suspended and nobody can tell you for how long.', choices: [
+      { label: 'Go home and rest', hint: '+20 energy · +5 mood · −5 reading', run: function () { return R({ energy: 20, mood: 5, study: -5 }, 'You went home, ate your mother\'s food and slept like a baby.'); } },
+      { label: 'Use the break to hustle', hint: '+₦8,000 · −15 energy', need: { energy: 15 }, run: function () { S.earned += 8000; return R({ cash: 8000, energy: -15 }, 'Two weeks of odd jobs paid better than lectures ever did.'); } },
+      { label: 'Read alone', hint: '+12 reading · −5 mood', run: function () { return R({ study: 12, mood: -5 }, 'Nobody to distract you. Nobody to talk to either.'); } }
+    ] },
+    { id: 'nepa', title: 'No light for three days', text: 'Your phone is dead, your laptop is dead and your assignment is due.', choices: [
+      { label: 'Charge at a shop (₦2,000)', hint: '−₦2,000 · +6 reading', need: { cash: 2000 }, run: function () { return R({ cash: -2000, study: 6 }, 'Everything came back to life, including the assignment.'); } },
+      { label: 'Read by torchlight', hint: '−10 energy · +10 reading', run: function () { return R({ energy: -10, study: 10 }, 'Your eyes hurt but the chapter is done.'); } },
+      { label: 'Sleep early', hint: '+12 energy · +3 mood', run: function () { return R({ energy: 12, mood: 3 }, 'The dark made the decision for you.'); } }
+    ] },
+    { id: 'handout', title: 'Handout for sale', text: 'The lecturer is selling the course handout for ₦3,500. Everyone says the exam comes from it.', choices: [
+      { label: 'Buy the handout (₦3,500)', hint: '−₦3,500 · +14 reading', need: { cash: 3500 }, run: function () { return R({ cash: -3500, study: 14 }, 'Page 12 to 40 became your whole personality.'); } },
+      { label: 'Borrow a friend\'s copy', hint: '+8 reading · −2 aura', run: function () { return R({ study: 8, aura: -2 }, 'You returned it two weeks late, with coffee on page 3.'); } },
+      { label: 'Skip it', hint: '−2 mood', run: function () { return R({ mood: -2 }, 'You will find the notes somewhere. Maybe.'); } }
+    ] },
+    { id: 'loan', title: 'Roommate wants a loan', text: 'He begs for ₦5,000 and swears he will pay on Friday.', choices: [
+      { label: 'Lend it', hint: 'Risky', need: { cash: 5000 }, run: function () {
+        if (chance(0.4)) return R({ aura: 8, mood: 4 }, 'Friday came and he paid back in full. Rare.');
+        return R({ cash: -5000, mood: -6, aura: 2 }, 'Friday came. Friday left. The money is gone.');
+      } },
+      { label: 'Say you have nothing', hint: '−3 aura', run: function () { return R({ aura: -3, mood: -1 }, 'Quick lie, awkward evening.'); } }
+    ] },
+    { id: 'sorting', title: 'Sorting offer', text: 'A coursemate whispers that a lecturer can "see you" for ₦20,000 and the course will pass itself.', choices: [
+      { label: 'Refuse and walk away', hint: '+4 mood · +3 aura', run: function () { return R({ mood: 4, aura: 3, integrity: 1 }, 'You walked away. It felt good, and a little expensive.'); } },
+      { label: 'Pay ₦20,000', hint: '−₦20,000 · risky', need: { cash: 20000 }, run: function () {
+        if (chance(0.3)) return R({ cash: -20000, aura: -20, mood: -20, study: 10, integrity: -2 }, 'It leaked. The whole faculty knows and the money is gone.');
+        return R({ cash: -20000, study: 30, mood: -3, integrity: -2 }, 'The grade will come through. You paid, and you know you paid.');
+      } }
+    ] },
+    { id: 'fare', title: 'Fuel price jumps', text: 'Overnight, bus fare to campus has doubled.', choices: [
+      { label: 'Walk it', hint: '−12 energy', run: function () { return R({ energy: -12 }, 'Forty minutes each way. Your legs file a complaint.'); } },
+      { label: 'Pay the new fare', hint: '−₦3,000', need: { cash: 3000 }, run: function () { return R({ cash: -3000 }, 'You paid and complained loudly in the bus.'); } },
+      { label: 'Skip lectures this week', hint: '−6 reading · −10 attendance', run: function () { return R({ study: -6, att: -10 }, 'You saved money and lost notes.'); } }
+    ] },
+    { id: 'water', title: 'No water in the hostel', text: 'The taps have been dry since Tuesday.', when: function () { return S.housing.id === 'hostel'; }, choices: [
+      { label: 'Buy jerrycans (₦1,500)', hint: '−₦1,500 · +2 mood', need: { cash: 1500 }, run: function () { return R({ cash: -1500, mood: 2 }, 'The water seller made more than your lecturer this week.'); } },
+      { label: 'Bath at a friend\'s place', hint: '−8 energy · +2 aura', run: function () { return R({ energy: -8, aura: 2 }, 'A long trip, a short bath and a good chat.'); } },
+      { label: 'Manage with a bucket', hint: '−10 mood', run: function () { return R({ mood: -10 }, 'Nobody talks about this part of campus life.'); } }
+    ] },
+    { id: 'faculty', title: 'Faculty week', text: 'The faculty is running a quiz and talent night. Winners go home with cash.', choices: [
+      { label: 'Enter the competition', hint: '−15 energy · can win ₦15,000', need: { energy: 15 }, run: function () {
+        if (chance(0.45)) { S.earned += 15000; return R({ cash: 15000, aura: 15, energy: -15, mood: 8 }, 'You won. Your name was shouted three times.'); }
+        return R({ energy: -15, aura: 3, mood: -4 }, 'You did not win, but people remember who showed up.');
+      } },
+      { label: 'Just watch', hint: '+3 mood', run: function () { return R({ mood: 3 }, 'You cheered from the back and ate puff-puff.'); } }
+    ] },
+    { id: 'data', title: 'Data finished', text: 'Your data ran out in the middle of an online assignment.', choices: [
+      { label: 'Buy a bundle (₦2,000)', hint: '−₦2,000 · +4 reading', need: { cash: 2000 }, run: function () { return R({ cash: -2000, study: 4 }, 'Submitted with four minutes to spare.'); } },
+      { label: 'Chase hostel Wi-Fi', hint: 'Risky', run: function () {
+        if (chance(0.5)) return R({ energy: -8, study: 5 }, 'The Wi-Fi held. Barely.');
+        return R({ energy: -8, mood: -6 }, 'The Wi-Fi died at 99 percent.');
+      } }
+    ] },
+    { id: 'crush', title: 'A reply from your crush', text: 'Someone you like replied to your WhatsApp status.', choices: [
+      { label: 'Reply immediately', hint: '−₦2,000 · +12 mood · +4 aura', need: { cash: 2000 }, run: function () { return R({ cash: -2000, mood: 12, aura: 4 }, 'You talked for two hours. Your data did not survive.'); } },
+      { label: 'Play it cool', hint: 'Risky', run: function () {
+        if (chance(0.5)) return R({ aura: 6, mood: 6 }, 'Cool worked. They replied first.');
+        return R({ aura: 2, mood: -4 }, 'Cool worked too well. They stopped replying.');
+      } },
+      { label: 'Ignore it', hint: '−3 mood', run: function () { return R({ mood: -3 }, 'You watched the notification until the screen dimmed.'); } }
+    ] },
+    { id: 'intern', title: 'Paid week at a senior\'s office', text: 'A senior offers you a week of paid work at his company.', when: function () { return S.aura >= 20; }, choices: [
+      { label: 'Accept', hint: '+₦12,000 · −20 energy · +8 aura', need: { energy: 20 }, run: function () { S.earned += 12000; return R({ cash: 12000, energy: -20, aura: 8, study: -4 }, 'Long days, a real payslip and a reference letter.'); } },
+      { label: 'Decline', hint: 'No change', run: function () { return R({}, 'Maybe next time.'); } }
+    ] },
+    { id: 'phone', title: 'Cracked screen', text: 'Your phone slipped off the bed and the screen is shattered.', choices: [
+      { label: 'Fix it (₦6,000)', hint: '−₦6,000', need: { cash: 6000 }, run: function () { return R({ cash: -6000 }, 'Good as new. The repairer was a fellow student.'); } },
+      { label: 'Live with the crack', hint: '−8 mood', run: function () { return R({ mood: -8 }, 'You now text like a person solving a puzzle.'); } }
+    ] },
+    { id: 'noise', title: 'Loud music', text: 'Your roommate is playing loud music while you try to read.', choices: [
+      { label: 'Confront him', hint: 'Risky', run: function () {
+        if (chance(0.5)) return R({ aura: 3 }, 'He turned it down and apologised.');
+        return R({ mood: -6, aura: -2 }, 'It escalated. Both of you are now unreasonable.');
+      } },
+      { label: 'Go to the library', hint: '−8 energy · +6 reading', run: function () { return R({ energy: -8, study: 6 }, 'Silence cost you a walk, and it was worth it.'); } },
+      { label: 'Join the vibe', hint: '+8 mood · −5 reading', run: function () { return R({ mood: 8, study: -5 }, 'You read nothing and danced a lot.'); } }
+    ] },
+    { id: 'allowance', title: 'Allowance is late', text: 'The money your parents promised has not arrived.', choices: [
+      { label: 'Wait it out', hint: '−8 mood', run: function () { return R({ mood: -8 }, 'Three days of "it has been sent".'); } },
+      { label: 'Hustle for a few days', hint: '+₦6,000 · −15 energy', need: { energy: 15 }, run: function () { S.earned += 6000; return R({ cash: 6000, energy: -15 }, 'You did not wait for anyone.'); } },
+      { label: 'Borrow ₦10,000 from a friend', hint: '+₦10,000 · −3 aura', run: function () { return R({ cash: 10000, aura: -3, mood: -2 }, 'The debt is now part of the friendship.'); } }
+    ] },
+    { id: 'food', title: 'Free jollof', text: 'A seminar is serving free rice for everyone who signs the attendance sheet.', choices: [
+      { label: 'Attend for the rice', hint: '+10 energy · +6 mood · +2 aura', run: function () { return R({ energy: 10, mood: 6, aura: 2, study: 2 }, 'You learned one thing and ate two plates.'); } },
+      { label: 'Skip it', hint: '−1 mood', run: function () { return R({ mood: -1 }, 'You had principles. Your stomach did not.'); } }
+    ] },
+    { id: 'quiz', title: 'Surprise test', text: 'The lecturer announces a test for tomorrow morning.', choices: [
+      { label: 'Cram tonight', hint: '−15 energy · +12 reading', need: { energy: 15 }, run: function () { return R({ study: 12, energy: -15, mood: -3 }, 'You remembered half of it, which was the half that came out.'); } },
+      { label: 'Pray and go', hint: 'Risky', run: function () {
+        if (chance(0.5)) return R({ study: 10, mood: 3 }, 'The questions were kind.');
+        return R({ study: -6, mood: -6 }, 'The questions were not kind.');
+      } }
+    ] },
+    { id: 'group', title: 'Group assignment', text: 'Two of your four group members have vanished.', choices: [
+      { label: 'Do it alone', hint: '−20 energy · +10 reading · +4 aura', need: { energy: 20 }, run: function () { return R({ energy: -20, study: 10, aura: 4 }, 'Your name appeared first on the cover page.'); } },
+      { label: 'Report them', hint: '+4 reading · −2 aura', run: function () { return R({ aura: -2, study: 4 }, 'Justice was slow but it came.'); } },
+      { label: 'Copy a past project', hint: '+2 reading · integrity', run: function () { return R({ study: 2, integrity: -1 }, 'Changed the title and the date. Nobody asked questions.'); } }
+    ] }
+  ];
+
+  /* ---------- state ---------- */
+  var S = null;
+  var view = 'start';
+  var lastView = '';
+  var draft = { name: '', course: 'cs', housing: 'hostel', matric: genMatric() };
+  var BEST_KEY = 'campus-life-ng:best';
+
+  function getBest() {
+    try { var v = localStorage.getItem(BEST_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; }
+  }
+  function saveBest(rec) {
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(rec)); } catch (e) { /* storage can be blocked */ }
+  }
+
+  function newGame() {
+    var course = COURSES.filter(function (c) { return c.id === draft.course; })[0];
+    var housing = HOUSING.filter(function (h) { return h.id === draft.housing; })[0];
+    S = {
+      name: (draft.name || '').trim() || 'Student', matric: draft.matric, course: course, housing: housing,
+      year: 1, week: 1, left: 2, cash: housing.cash, energy: 80, mood: 70, aura: 30,
+      study: 0, att: 0, homeCalls: 0, integrity: 0, earned: 0,
+      results: [], log: [], seen: [], event: null, exam: null
+    };
+    addLog('Resumption day. ' + housing.name + ', ' + course.name + ' and ' + fmt(housing.cash) + ' to last you.', []);
+    view = 'play';
+  }
+
+  function levelLabel() { return S.year + '00L'; }
+
+  function addLog(text, chips) {
+    S.log.unshift({ tag: levelLabel() + ' · W' + S.week, text: text, chips: chips || [] });
+    if (S.log.length > 30) S.log.length = 30;
+  }
+
+  var CHIP_NAMES = { energy: 'energy', mood: 'mood', aura: 'aura', study: 'reading', att: 'attendance' };
+  function apply(fx) {
+    var chips = [];
+    ['cash', 'energy', 'mood', 'aura', 'study', 'att'].forEach(function (k) {
+      if (!fx[k]) return;
+      var before = S[k];
+      var after = S[k] + fx[k];
+      after = k === 'cash' ? Math.max(0, after) : clamp(after, 0, 100);
+      var d = after - before;
+      S[k] = after;
+      if (d !== 0) {
+        var sign = d > 0 ? '+' : '−';
+        var label = k === 'cash' ? fmt(d) : Math.abs(d) + ' ' + CHIP_NAMES[k];
+        chips.push({ t: sign + label, c: d > 0 ? 'good' : 'bad' });
+      }
+    });
+    if (fx.integrity) S.integrity += fx.integrity;
+    return chips;
+  }
+
+  function reason(a) {
+    if (a.energy && S.energy < a.energy) return 'Too tired';
+    if (a.cash && S.cash < a.cash) return 'Not enough cash';
+    if (a.home && S.homeCalls >= 2) return 'No calls left';
+    return '';
+  }
+  function choiceReason(ch) {
+    if (!ch.need) return '';
+    if (ch.need.energy && S.energy < ch.need.energy) return 'Too tired';
+    if (ch.need.cash && S.cash < ch.need.cash) return 'Not enough cash';
+    return '';
+  }
+
+  function baseScore() {
+    return S.study * S.course.study * 0.58 + S.att * 0.12 + 4;
+  }
+  function predicted() {
+    return Math.round(baseScore());
+  }
+
+  /* ---------- game flow ---------- */
+  function doAction(id) {
+    var a = ACTIONS.filter(function (x) { return x.id === id; })[0];
+    if (!a || reason(a)) return;
+    var r = a.run();
+    addLog(r.text, apply(r.fx));
+    S.left--;
+    if (S.left <= 0) endWeek();
+  }
+
+  function endWeek() {
+    var cost = S.housing.cost, chips, text = 'Week ' + S.week + ' done. ';
+    if (S.cash >= cost) {
+      chips = apply({ cash: -cost, energy: S.housing.rest, mood: -2 });
+      text += 'Rent, food and transport took ' + fmt(cost) + '.';
+    } else {
+      chips = apply({ cash: -S.cash, energy: S.housing.rest, mood: -10 });
+      text += 'Money finished before the week did. You skipped meals.';
+    }
+    addLog(text, chips);
+    if (S.mood <= 10) {
+      addLog('You hit a wall and spent two days in bed.', apply({ mood: 15, energy: 20, study: -8, aura: -3 }));
+    }
+    S.week++;
+    S.left = 2;
+    if (S.week > WEEKS) { runExam(); return; }
+    if (chance(0.8)) startEvent();
+  }
+
+  function startEvent() {
+    var pool = EVENTS.filter(function (e) { return S.seen.indexOf(e.id) < 0 && (!e.when || e.when()); });
+    if (!pool.length) {
+      S.seen = [];
+      pool = EVENTS.filter(function (e) { return !e.when || e.when(); });
+    }
+    var ev = pick(pool);
+    S.seen.push(ev.id);
+    S.event = ev;
+    view = 'event';
+  }
+
+  function chooseEvent(i) {
+    var ev = S.event;
+    if (!ev) return;
+    var ch = ev.choices[i];
+    if (!ch || choiceReason(ch)) return;
+    var r = ch.run();
+    addLog(ev.title + '. ' + r.text, apply(r.fx));
+    S.event = null;
+    view = 'play';
+  }
+
+  function gradePoint(x) {
+    if (x >= 70) return 5;
+    if (x >= 60) return 4 + (x - 60) / 10;
+    if (x >= 50) return 3 + (x - 50) / 10;
+    if (x >= 45) return 2 + (x - 45) / 5;
+    if (x >= 40) return 1 + (x - 40) / 5;
+    return Math.max(0, x / 40);
+  }
+  function letter(x) { return x >= 70 ? 'A' : x >= 60 ? 'B' : x >= 50 ? 'C' : x >= 45 ? 'D' : x >= 40 ? 'E' : 'F'; }
+  var COMMENTS = {
+    A: 'Distinction. The department has noticed you.',
+    B: 'Solid. You earned this one.',
+    C: 'A pass. Your parents will accept this.',
+    D: 'Barely there, but there.',
+    E: 'Scraped through by a whisker.',
+    F: 'Carryover. You will see this course again.'
+  };
+
+  function runExam() {
+    var notes = [];
+    var score = baseScore() + rnd(-5, 5);
+    notes.push('Reading ' + S.study + ' · attendance ' + S.att + '%');
+    if (S.energy < 25) { score -= 8; notes.push('Exhausted on exam day (−8)'); }
+    if (S.mood < 25) { score -= 6; notes.push('Mind was elsewhere (−6)'); }
+    score = Math.round(clamp(score, 0, 100));
+    var gp = gradePoint(score);
+    var l = letter(score);
+    S.exam = { level: levelLabel(), score: score, gp: gp, letter: l, notes: notes };
+    S.results.push(S.exam);
+    view = 'exam';
+  }
+
+  function cgpa() {
+    if (!S.results.length) return 0;
+    var t = 0;
+    S.results.forEach(function (r) { t += r.gp; });
+    return t / S.results.length;
+  }
+  function degreeClass(g) {
+    if (g >= 4.5) return 'First Class';
+    if (g >= 3.5) return 'Second Class Upper';
+    if (g >= 2.4) return 'Second Class Lower';
+    if (g >= 1.5) return 'Third Class';
+    return 'Pass';
+  }
+  function lifeTitle(g) {
+    if (S.integrity <= -2) return 'Sorting Merchant';
+    if (g >= 4.5 && S.aura >= 60) return 'Book Warrior With Gist';
+    if (g >= 4.5) return 'Book Warrior';
+    if (S.earned >= 60000) return 'Campus Plug';
+    if (S.aura >= 70) return 'Ministry of Vibes';
+    if (S.cash >= 60000) return 'Chief Saver';
+    return 'Survivor';
+  }
+  var TITLE_LINES = {
+    'Sorting Merchant': 'You found the shortcut. Everyone knows which one.',
+    'Book Warrior With Gist': 'Top grades and a social life. Nobody likes you less for it.',
+    'Book Warrior': 'Library staff know your name and your seat.',
+    'Campus Plug': 'You sold, fixed, built or edited something for half the school.',
+    'Ministry of Vibes': 'People remember your parties more than your CGPA.',
+    'Chief Saver': 'You left school with money. That is its own degree.',
+    'Survivor': 'You came, you suffered, you graduated.'
+  };
+
+  function nextAfterExam() {
+    if (S.year >= YEARS) {
+      var g = cgpa();
+      var best = getBest();
+      if (!best || g > best.cgpa) saveBest({ cgpa: g, cls: degreeClass(g), name: S.name });
+      view = 'end';
+      return;
+    }
+    S.year++;
+    S.week = 1; S.left = 2; S.study = 0; S.att = 0; S.homeCalls = 0; S.exam = null;
+    var allowance = rnd(20, 30) * 1000;
+    var chips = apply({ cash: allowance, energy: 30, mood: 10 });
+    addLog('New session, ' + levelLabel() + '. Your allowance arrived: ' + fmt(allowance) + '.', chips);
+    view = 'play';
+  }
+
+  /* ---------- rendering ---------- */
+  function chipsHtml(chips) {
+    return chips.map(function (c) { return '<span class="chip ' + c.c + '">' + esc(c.t) + '</span>'; }).join('');
+  }
+
+  function brandBar() {
+    return '<div class="brand"><b>Campus Life NG</b><span>' + esc(S.name) + ' · ' + esc(S.matric) + '</span></div>';
+  }
+
+  function renderStart() {
+    var c = COURSES.filter(function (x) { return x.id === draft.course; })[0];
+    var h = HOUSING.filter(function (x) { return x.id === draft.housing; })[0];
+    var best = getBest();
+    var nm = (draft.name || '').trim();
+    var html = '<section class="hero"><h1>Survive 100 level. Then the other three.</h1>' +
+      '<p class="lede">A Nigerian campus life sim. Split your weeks between reading, hustling and vibes, and graduate with the class you can afford.</p>' +
+      (best ? '<p class="fine mono">Your best so far: ' + best.cgpa.toFixed(2) + ' CGPA · ' + esc(best.cls) + '</p>' : '') + '</section>';
+    html += '<div class="idcard"><header><span>University of Naija</span><span>Student ID</span></header><div class="idbody">' +
+      '<div class="photo" id="idPhoto">' + esc((nm.charAt(0) || '?').toUpperCase()) + '</div>' +
+      '<dl class="idfields"><div><dt>Name</dt><dd id="idName">' + esc(nm || 'Your name') + '</dd></div>' +
+      '<div><dt>Matric no.</dt><dd class="mono">' + esc(draft.matric) + '</dd></div>' +
+      '<div><dt>Course</dt><dd>' + esc(c.name) + '</dd></div>' +
+      '<div><dt>Accommodation</dt><dd>' + esc(h.name) + '</dd></div></dl></div></div>';
+    html += '<div class="field"><label class="tag" for="nameInput">Your name</label><input class="text-in" id="nameInput" type="text" maxlength="18" autocomplete="off" placeholder="Chinedu" value="' + esc(draft.name) + '"></div>';
+    html += '<div class="field"><span class="tag">Course</span><div class="opts">' + COURSES.map(function (x) {
+      return '<button type="button" class="opt" data-do="course:' + x.id + '" aria-pressed="' + (x.id === draft.course) + '"><strong>' + esc(x.name) + '</strong><small>' + esc(x.note) + '</small></button>';
+    }).join('') + '</div></div>';
+    html += '<div class="field"><span class="tag">Where you live</span><div class="opts">' + HOUSING.map(function (x) {
+      return '<button type="button" class="opt" data-do="housing:' + x.id + '" aria-pressed="' + (x.id === draft.housing) + '"><strong>' + esc(x.name) + '</strong><small>' + esc(x.note) + ' Start with ' + fmt(x.cash) + '.</small></button>';
+    }).join('') + '</div></div>';
+    html += '<button type="button" class="btn" data-do="start">Start 100 level</button>';
+    html += '<p class="fine">University of Naija is fictional. The struggle is not.</p>';
+    return html;
+  }
+
+  function bar(label, val) {
+    return '<div><div class="bar-head"><span>' + label + '</span><span>' + val + '</span></div><div class="track"><div class="fill' + (val < 25 ? ' low' : '') + '" style="width:' + val + '%"></div></div></div>';
+  }
+
+  function hudHtml() {
+    var pred = clamp(predicted(), 0, 100);
+    var pips = '';
+    for (var i = 0; i < 2; i++) pips += '<span class="pip' + (i < S.left ? ' on' : '') + '"></span>';
+    return '<div class="hud"><div class="hud-top"><div><div class="lvl">' + levelLabel() + '</div>' +
+      '<div class="tag">Week ' + S.week + ' of ' + WEEKS + ' · ' + esc(S.course.name) + '</div></div>' +
+      '<div class="cashbox"><div class="tag">Balance</div><div class="cash">' + fmt(S.cash) + '</div></div></div>' +
+      '<div class="bars">' + bar('Energy', S.energy) + bar('Mood', S.mood) + bar('Aura', S.aura) + '</div>' +
+      '<div class="ready"><div class="bar-head"><span>Exam readiness</span><span>about ' + pred + '% · pass mark 40</span></div><div class="track"><div class="fill' + (pred < 40 ? ' low' : '') + '" style="width:' + pred + '%"></div></div></div>' +
+      '<div class="pips"><span>Actions left</span>' + pips + '</div></div>';
+  }
+
+  function notebookHtml() {
+    var rows = S.log.slice(0, 3).map(function (e) {
+      return '<p class="entry"><span class="tag">' + esc(e.tag) + '</span>' + esc(e.text) + ' ' + chipsHtml(e.chips) + '</p>';
+    }).join('');
+    return '<div class="notebook" aria-live="polite">' + rows + '</div>';
+  }
+
+  function renderPlay() {
+    var acts = ACTIONS.map(function (a) {
+      var why = reason(a);
+      var name = a.id === 'home' ? a.name + ' (' + (2 - S.homeCalls) + ' left)' : a.name;
+      return '<button type="button" class="act" data-do="act:' + a.id + '"' + (why ? ' disabled' : '') + '><b>' + esc(name) + '</b><span>' + esc(why || a.hint) + '</span></button>';
+    }).join('');
+    return brandBar() + hudHtml() + notebookHtml() + '<div class="actions">' + acts + '</div>';
+  }
+
+  function renderEvent() {
+    var ev = S.event;
+    var choices = ev.choices.map(function (ch, i) {
+      var why = choiceReason(ch);
+      return '<button type="button" class="act" data-do="ev:' + i + '"' + (why ? ' disabled' : '') + '><b>' + esc(ch.label) + '</b><span>' + esc(why || ch.hint) + '</span></button>';
+    }).join('');
+    return brandBar() + hudHtml() + notebookHtml() +
+      '<div class="event"><div class="tag">' + levelLabel() + ' · Week ' + S.week + ' news</div><h2>' + esc(ev.title) + '</h2><p>' + esc(ev.text) + '</p><div class="choices">' + choices + '</div></div>';
+  }
+
+  function renderExam() {
+    var e = S.exam;
+    var pass = e.letter === 'A' || e.letter === 'B' || e.letter === 'C';
+    var rows = '<div class="row head"><span>Level</span><span>Score</span><span>Grade</span><span>GP</span></div>' +
+      S.results.map(function (r) {
+        return '<div class="row"><span>' + r.level + '</span><span>' + r.score + '%</span><span>' + r.letter + '</span><span>' + r.gp.toFixed(2) + '</span></div>';
+      }).join('');
+    var last = S.year >= YEARS;
+    return brandBar() +
+      '<div class="exam"><div><div class="tag">' + e.level + ' results</div><h2>' + e.score + '% in your exams</h2>' +
+      '<p class="muted">GP ' + e.gp.toFixed(2) + '. ' + COMMENTS[e.letter] + '</p></div>' +
+      '<div class="stamp' + (pass ? ' pass' : '') + '" aria-label="Grade ' + e.letter + '">' + e.letter + '</div>' +
+      '<ul class="notes">' + e.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="table">' + rows + '</div>' +
+      '<p class="fine mono">CGPA so far: ' + cgpa().toFixed(2) + '</p>' +
+      '<button type="button" class="btn" data-do="next">' + (last ? 'See your final result' : 'Continue to ' + (S.year + 1) + '00L') + '</button>';
+  }
+
+  function shareText() {
+    var g = cgpa();
+    return S.name + ' graduated from Campus Life NG with a ' + g.toFixed(2) + ' CGPA (' + degreeClass(g) + '). Life title: ' + lifeTitle(g) + '. Can you beat that?';
+  }
+
+  function renderEnd() {
+    var g = cgpa();
+    var title = lifeTitle(g);
+    var best = getBest();
+    var integrity = S.integrity > 0 ? 'Clean hands' : S.integrity < 0 ? 'You paid for a grade' : 'Never tested';
+    var rows = S.results.map(function (r) {
+      return '<div class="row"><span>' + r.level + '</span><span>' + r.score + '%</span><span>' + r.letter + '</span><span>' + r.gp.toFixed(2) + '</span></div>';
+    }).join('');
+    return brandBar() +
+      '<div class="final"><div class="tag">Graduation · ' + esc(S.course.name) + '</div><h2>' + degreeClass(g) + '</h2>' +
+      '<div class="cgpa">' + g.toFixed(2) + '</div><div class="tag">Final CGPA out of 5.00</div>' +
+      '<h2 style="margin-top:8px">' + esc(title) + '</h2><p class="muted">' + esc(TITLE_LINES[title]) + '</p>' +
+      '<ul class="stats"><li><span>Earned from hustling</span><span class="mono">' + fmt(S.earned) + '</span></li>' +
+      '<li><span>Money left</span><span class="mono">' + fmt(S.cash) + '</span></li>' +
+      '<li><span>Aura</span><span class="mono">' + S.aura + '</span></li>' +
+      '<li><span>Integrity</span><span>' + integrity + '</span></li></ul></div>' +
+      '<div class="table"><div class="row head"><span>Level</span><span>Score</span><span>Grade</span><span>GP</span></div>' + rows + '</div>' +
+      (best ? '<p class="fine mono">Best run: ' + best.cgpa.toFixed(2) + ' CGPA · ' + esc(best.cls) + '</p>' : '') +
+      '<div class="field"><label class="tag" for="shareBox">Share your result</label><textarea class="share" id="shareBox" readonly>' + esc(shareText()) + '</textarea></div>' +
+      '<button type="button" class="btn" data-do="copy" id="copyBtn">Copy result</button>' +
+      '<button type="button" class="btn ghost" data-do="again">Play again</button>';
+  }
+
+  function render() {
+    var html;
+    if (view === 'start') html = renderStart();
+    else if (view === 'play') html = renderPlay();
+    else if (view === 'event') html = renderEvent();
+    else if (view === 'exam') html = renderExam();
+    else html = renderEnd();
+    document.getElementById('app').innerHTML = '<div class="wrap">' + html + '</div>';
+    if (view !== lastView) { window.scrollTo(0, 0); lastView = view; }
+  }
+
+  /* ---------- input ---------- */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-do]') : null;
+    if (!b || b.disabled) return;
+    var parts = b.getAttribute('data-do').split(':');
+    var kind = parts[0], val = parts[1];
+    if (kind === 'course') { draft.course = val; render(); }
+    else if (kind === 'housing') { draft.housing = val; render(); }
+    else if (kind === 'start') { newGame(); render(); }
+    else if (kind === 'act') { doAction(val); render(); }
+    else if (kind === 'ev') { chooseEvent(parseInt(val, 10)); render(); }
+    else if (kind === 'next') { nextAfterExam(); render(); }
+    else if (kind === 'again') { draft.matric = genMatric(); view = 'start'; render(); }
+    else if (kind === 'copy') {
+      var box = document.getElementById('shareBox');
+      var done = function () { b.textContent = 'Copied'; };
+      var fallback = function () {
+        try { box.focus(); box.select(); document.execCommand('copy'); done(); } catch (err) { b.textContent = 'Select the text and copy it'; }
+      };
+      try {
+        navigator.clipboard.writeText(box.value).then(done, fallback);
+      } catch (err) { fallback(); }
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.id === 'nameInput') {
+      draft.name = e.target.value;
+      var nm = draft.name.trim();
+      var n = document.getElementById('idName'), p = document.getElementById('idPhoto');
+      if (n) n.textContent = nm || 'Your name';
+      if (p) p.textContent = (nm.charAt(0) || '?').toUpperCase();
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
